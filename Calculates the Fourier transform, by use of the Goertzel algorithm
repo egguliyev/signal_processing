@@ -1,0 +1,44 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include "goertzel.h"
+/*
+Calculates the Fourier transform, by use of the Goertzel
+algorithm, over Nf points from frequency f1 to frequency f2,
+of N (N>1) samples of a signal taken at sps samples per
+second.
+*/
+
+void goertzel( uint32_t N, float32_t *q, float32_t theta, float32_t *Qr, float32_t *Qi )
+{
+  uint32_t n;
+  float32_t u0, u1, u2; /* variable of the difference eq: u(k) = f(k) + 2cos(theta)u(k-1) - u(k-2) */
+  float32_t C0, S0; /* cos(theta) & sin(theta) */
+  float32_t C02; /* 2*cos(theta) */
+  float32_t CN, SN; /* cos((N-1)*theta) & sin((N-1)*theta) */
+  float32_t yr, yi; /* real and imaginary parts of yN */
+
+  C0 = cos(theta);
+  C02 = 2.0*C0;
+  S0 = sin(theta);
+  CN = cos((N-1)*theta);
+  SN = sin((N-1)*theta);
+  u0 = 0.0;
+  u1 = 0.0;
+  u2 = 0.0;
+
+  for( n = 0; n < N; ++n )
+  {
+    u2 = q[n] + C02*u1 - u0;
+    u0 = u1;
+    u1 = u2;
+  } /* end for n */
+
+  /* Calculate yN = yr + iyi */
+  yr = u2 - C0*u0;
+  yi = S0*u0;
+
+  /* Calculate F(theta) = yN*e^(-i(N-1)*theta) */
+  *Qr = yr*CN + yi*SN;
+  *Qi = yi*CN - yr*SN;
+} /* end function goertzel */
