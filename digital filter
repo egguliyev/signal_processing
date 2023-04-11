@@ -1,0 +1,75 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+
+namespace DiaGui_2
+{
+    class Filter
+    {
+        private int NL;// = 5;//9;//11;
+        private int DL;// = 5;//9;//11;
+
+        double[] NUM;
+        double[] DEN;
+        double[] Reg;
+
+        double[] xbuffer, ybuffer;
+
+        public Filter(double[] num, double[] den, int nl, int dl)
+        {
+            //--- Constructor code
+            this.NUM = num;
+            this.DEN = den;
+            this.NL = nl;
+            this.DL = dl;
+            Reg = new double[nl + 1];
+            for (int i = 0; i < nl + 1; i++) Reg[i] = 0.0;
+
+            xbuffer = new double[nl];
+            ybuffer = new double[dl];
+
+        }
+
+        //public float filter(float newSample)
+        public double filter(double newSample)
+        {
+            double y;
+            //--- shift register values
+            for (int i=NL; i>0; i--) Reg[i] = Reg[i - 1];
+
+            //--- insert new sample
+            Reg[0] = (double) newSample;
+    
+            //--- denominator
+            for (int i=1; i<DL; i++) {
+                Reg[0] -= DEN[i] * Reg[i];
+            }
+    
+            //--- numerator
+            y = 0;
+            for (int i=0; i<NL; i++) {
+                y += (float) (NUM[i] * Reg[i]);
+            }
+
+            return y;
+        }
+
+        public double filter2(double newSample)
+        {
+            double out_sample = 0; /* Initialize output to zero */
+            xbuffer[0] = newSample;         /* cpy input sample at buffer index 0 */
+            out_sample += NUM[0] * ybuffer[0]; /* update the output sample  */
+
+            for (int i = 1; i < NL; i++)
+            {
+                out_sample += NUM[i] * xbuffer[i] - DEN[i] * ybuffer[i];
+            }
+            ybuffer[1] = out_sample;
+
+            return out_sample;
+        }
+
+    }
+}
